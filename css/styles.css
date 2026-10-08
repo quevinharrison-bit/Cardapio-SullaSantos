@@ -35,7 +35,16 @@ body {
   color: var(--cocoa-text);
   line-height: 1.5;
   -webkit-tap-highlight-color: transparent;
-  padding-bottom: 90px; /* Espaço para o carrinho flutuante */
+  padding-bottom: max(95px, calc(80px + env(safe-area-inset-bottom))); /* Espaço otimizado para celulares com barra gestual */
+}
+
+/* Suporte a Safe-Area em Celulares */
+.safe-area-bottom {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+
+.safe-area-top {
+  padding-top: max(0.5rem, env(safe-area-inset-top));
 }
 
 h1, h2, h3, .font-serif {

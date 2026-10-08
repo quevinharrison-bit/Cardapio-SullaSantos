@@ -37,6 +37,8 @@ const state = {
   editingProduct: null
 };
 
+let deferredPrompt = null;
+
 // Inicialização da Aplicação
 function initApp() {
   Storage.init();
@@ -50,6 +52,14 @@ function initApp() {
         .catch(err => console.error('Erro ao registrar Service Worker:', err));
     });
   }
+
+  // Capturar evento de instalação PWA mobile
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    const installBtn = document.getElementById('btn-install-pwa');
+    if (installBtn) installBtn.classList.remove('hidden');
+  });
 
   setupGlobalEventListeners();
   renderApp();
@@ -161,6 +171,21 @@ function setupGlobalEventListeners() {
   });
 
   document.addEventListener('click', (e) => {
+    // 0. Instalação PWA no Celular
+    if (e.target.closest('#btn-install-pwa')) {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then((choiceResult) => {
+          if (choiceResult.outcome === 'accepted') {
+            console.log('Aplicativo instalado no celular pelo usuário!');
+          }
+          deferredPrompt = null;
+        });
+      } else {
+        alert('Para instalar no celular (iOS Safari):\n1. Toque no ícone de Compartilhar no rodapé do Safari.\n2. Selecione "Adicionar à Tela de Início".');
+      }
+    }
+
     // 1. Limpar Busca
     if (e.target.closest('#btn-clear-search')) {
       state.searchQuery = '';

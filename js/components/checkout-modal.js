@@ -6,8 +6,11 @@ export function renderCheckoutModal(cartItems = [], store = {}) {
 
   return `
     <div id="modal-checkout-overlay" class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-xs modal-backdrop">
-      <div class="bg-white w-full max-w-xl rounded-t-2xl sm:rounded-2xl overflow-hidden shadow-2xl modal-content border border-[#ede5da] flex flex-col max-h-[92vh]">
+      <div class="bg-white w-full max-w-xl rounded-t-3xl sm:rounded-2xl overflow-hidden shadow-2xl modal-content border border-[#ede5da] flex flex-col max-h-[94vh]">
         
+        <!-- Puxador Visual Mobile Sheet -->
+        <div class="w-12 h-1.5 bg-[#ede5da] rounded-full mx-auto my-2.5 sm:hidden shrink-0"></div>
+
         <!-- Cabeçalho do Checkout -->
         <div class="p-4 sm:p-5 bg-gradient-to-r from-[#7a192e] to-[#571221] text-white flex items-center justify-between shrink-0">
           <div class="flex items-center gap-2">
