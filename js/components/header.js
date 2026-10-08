@@ -1,19 +1,49 @@
-// Componente do Cabeçalho da Confeitaria
+// Componente do Cabeçalho da Confeitaria com seletor proeminente de modo (Cliente vs Admin)
 
-export function renderHeader(store) {
+export function renderHeader(store, currentView = 'client') {
   const isOpen = store.isOpen;
   
   return `
-    <header class="relative bg-white border-b border-[#ede5da] shadow-xs transition-all duration-300">
-      <!-- Top Decorator Bar Bordô -->
-      <div class="h-2 w-full bg-gradient-to-r from-[#7a192e] via-[#b82643] to-[#571221]"></div>
+    <!-- Barra Superior Fixa de Alternância de Modo (Visão do Cliente vs Painel Admin) -->
+    <div class="bg-[#3b0914] text-white px-4 py-2.5 border-b border-[#7a192e] shadow-xs">
+      <div class="max-w-5xl mx-auto flex items-center justify-between gap-2">
+        
+        <!-- Botões de Modo -->
+        <div class="flex items-center gap-2">
+          <button 
+            id="nav-mode-client" 
+            class="px-3.5 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 ${currentView === 'client' ? 'bg-[#7a192e] text-white shadow-md ring-1 ring-white/30' : 'text-white/70 hover:text-white hover:bg-white/10'}"
+          >
+            <span>🍰 Cardápio do Cliente</span>
+          </button>
 
-      <div class="max-w-5xl mx-auto px-4 py-6 sm:px-6">
+          <button 
+            id="nav-mode-admin" 
+            class="px-3.5 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 ${currentView === 'admin' ? 'bg-amber-400 text-black shadow-md ring-2 ring-amber-300' : 'text-amber-300 hover:text-white hover:bg-white/10'}"
+          >
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path></svg>
+            <span>⚙️ Painel do Dono (Editar)</span>
+          </button>
+        </div>
+
+        <!-- Indicador de Status do Modo -->
+        <div class="flex items-center gap-2">
+          <button id="btn-install-pwa" class="hidden text-xs text-[#7a192e] font-bold border border-[#7a192e]/40 hover:border-[#7a192e] px-3 py-1 rounded-full transition-all flex items-center gap-1.5 bg-[#fbe5e8] shadow-2xs animate-pulse">
+            <svg class="w-3.5 h-3.5 text-[#7a192e]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+            <span>Instalar App</span>
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Banner Principal da Confeitaria -->
+    <header class="relative bg-white border-b border-[#ede5da] shadow-xs transition-all duration-300">
+      <div class="max-w-5xl mx-auto px-4 py-5 sm:px-6">
         <div class="flex flex-col md:flex-row items-center md:items-start justify-between gap-4 text-center md:text-left">
           
           <!-- Logo & Nome & Bio -->
           <div class="flex flex-col sm:flex-row items-center gap-4">
-            <!-- Logo com fallback elegante de imagem ou iniciais -->
             <div class="relative group">
               <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden border-2 border-[#7a192e] shadow-md bg-[#fbe5e8] flex items-center justify-center shrink-0">
                 ${store.logoUrl ? `
@@ -39,7 +69,6 @@ export function renderHeader(store) {
                   ${store.name}
                 </h1>
                 
-                <!-- Status Badge -->
                 <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${isOpen ? 'badge-open' : 'badge-closed'}">
                   <span class="w-2 h-2 rounded-full ${isOpen ? 'bg-emerald-600' : 'bg-red-600'}"></span>
                   ${isOpen ? 'Aberto Agora' : 'Fechado para Pedidos'}
@@ -66,19 +95,6 @@ export function renderHeader(store) {
                 </span>
               </div>
             </div>
-          </div>
-
-          <!-- Botão de Acesso ao Painel Admin e Instalação PWA no Celular -->
-          <div class="flex items-center gap-2">
-            <button id="btn-install-pwa" class="hidden text-xs text-[#7a192e] font-bold border border-[#7a192e]/40 hover:border-[#7a192e] px-3 py-1.5 rounded-full transition-all flex items-center gap-1.5 bg-[#fbe5e8] shadow-2xs animate-pulse" title="Instalar aplicativo da confeitaria no celular">
-              <svg class="w-3.5 h-3.5 text-[#7a192e]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-              <span>Instalar App</span>
-            </button>
-
-            <button id="btn-open-admin" class="text-xs text-[#6e5e5a] hover:text-[#7a192e] border border-[#ede5da] hover:border-[#7a192e] px-3 py-1.5 rounded-full transition-all flex items-center gap-1.5 bg-white shadow-2xs" title="Painel de Controle da Confeitaria">
-              <svg class="w-3.5 h-3.5 text-[#7a192e]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
-              <span>Admin</span>
-            </button>
           </div>
 
         </div>

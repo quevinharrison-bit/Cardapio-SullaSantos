@@ -20,11 +20,14 @@ const state = {
   orders: [],
   cart: [],
 
+  // Modo de Navegação da Página: 'client' (Visão do Cliente) | 'admin' (Painel do Dono)
+  currentView: 'client',
+
   // Filtros do Cliente
   activeCategoryId: 'all',
   searchQuery: '',
 
-  // Modais Ativos: null | 'product-modal' | 'cart-drawer' | 'checkout-modal' | 'admin-auth' | 'admin-panel' | 'product-form'
+  // Modais Ativos: null | 'product-modal' | 'cart-drawer' | 'checkout-modal' | 'admin-auth' | 'product-form'
   activeModal: null,
   modalProduct: null,
   modalProductQty: 1,
@@ -80,10 +83,7 @@ function renderApp() {
 
   // 1. Filtrar Produtos
   const filteredProducts = state.products.filter(prod => {
-    // Filtro por Categoria
     const matchesCategory = state.activeCategoryId === 'all' || prod.categoryId === state.activeCategoryId;
-    
-    // Filtro por Busca (Nome ou Descrição)
     const query = state.searchQuery.trim().toLowerCase();
     const matchesSearch = !query || 
       (prod.name && prod.name.toLowerCase().includes(query)) ||
@@ -93,57 +93,125 @@ function renderApp() {
   });
 
   // Contagem de produtos por categoria
-  const productCounts = {
-    all: state.products.length
-  };
+  const productCounts = { all: state.products.length };
   state.categories.forEach(cat => {
     productCounts[cat.id] = state.products.filter(p => p.categoryId === cat.id).length;
   });
 
-  // Montar HTML da Visão do Cliente
-  let html = `
-    <!-- Header da Confeitaria -->
-    ${renderHeader(state.store)}
+  // Montar HTML dependendo do Modo Atual ('client' ou 'admin')
+  let mainContent = '';
 
-    <!-- Busca e Filtros de Categorias -->
-    ${renderSearchAndCategories(state.categories, state.activeCategoryId, state.searchQuery, productCounts)}
+  if (state.currentView === 'client') {
+    // VISÃO DO CLIENTE
+    mainContent = `
+      ${renderSearchAndCategories(state.categories, state.activeCategoryId, state.searchQuery, productCounts)}
 
-    <!-- Lista de Produtos -->
-    <main class="max-w-5xl mx-auto px-4 sm:px-6 py-6 space-y-6">
-      ${filteredProducts.length === 0 ? `
-        <div class="text-center py-16 bg-white rounded-2xl border border-[#ede5da] p-8 space-y-3 shadow-2xs">
-          <div class="w-16 h-16 rounded-full bg-[#fbe5e8] text-[#7a192e] flex items-center justify-center mx-auto">
-            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+      <main class="max-w-5xl mx-auto px-4 sm:px-6 py-6 space-y-6">
+        ${filteredProducts.length === 0 ? `
+          <div class="text-center py-16 bg-white rounded-2xl border border-[#ede5da] p-8 space-y-3 shadow-2xs">
+            <div class="w-16 h-16 rounded-full bg-[#fbe5e8] text-[#7a192e] flex items-center justify-center mx-auto">
+              <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            </div>
+            <h3 class="font-serif font-bold text-xl text-[#2c1a16]">Nenhum produto encontrado</h3>
+            <p class="text-xs text-[#6e5e5a] max-w-sm mx-auto">Tente buscar por outro termo ou selecione uma categoria diferente no topo.</p>
           </div>
-          <h3 class="font-serif font-bold text-xl text-[#2c1a16]">Nenhum produto encontrado</h3>
-          <p class="text-xs text-[#6e5e5a] max-w-sm mx-auto">Tente buscar por outro termo ou selecione uma categoria diferente no topo.</p>
-        </div>
-      ` : `
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          ${filteredProducts.map(prod => renderProductCard(prod, state.cart)).join('')}
-        </div>
-      `}
-    </main>
+        ` : `
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            ${filteredProducts.map(prod => renderProductCard(prod, state.cart, state.isAdminAuthenticated)).join('')}
+          </div>
+        `}
+      </main>
 
-    <!-- Rodapé Elegante da Loja -->
-    <footer class="bg-white border-t border-[#ede5da] py-8 mt-12 text-center text-xs text-[#6e5e5a] space-y-3">
-      <div class="max-w-5xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div>
-          <p class="font-serif font-bold text-[#7a192e] text-sm">${state.store.name}</p>
-          <p class="text-[11px]">${state.store.slogan || ''}</p>
-        </div>
+      <footer class="bg-white border-t border-[#ede5da] py-8 mt-12 text-center text-xs text-[#6e5e5a] space-y-3">
+        <div class="max-w-5xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div>
+            <p class="font-serif font-bold text-[#7a192e] text-sm">${state.store.name}</p>
+            <p class="text-[11px]">${state.store.slogan || ''}</p>
+          </div>
 
-        <div class="flex items-center gap-3">
-          <button id="btn-footer-admin" class="hover:text-[#7a192e] border border-[#ede5da] px-3 py-1.5 rounded-full transition-colors bg-[#faf7f2]">
-            🔒 Acesso Administrativo
-          </button>
+          <div class="flex items-center gap-3">
+            <button id="nav-mode-admin" class="hover:text-[#7a192e] border border-[#ede5da] px-3.5 py-1.5 rounded-full transition-colors bg-[#faf7f2] font-semibold flex items-center gap-1.5">
+              <span>⚙️ Acessar Painel Admin (Dono)</span>
+            </button>
+          </div>
         </div>
-      </div>
-      <p class="text-[10px] text-gray-400">© ${new Date().getFullYear()} ${state.store.name} • Cardápio Digital Responsivo PWA</p>
-    </footer>
+        <p class="text-[10px] text-gray-400">© ${new Date().getFullYear()} ${state.store.name} • Cardápio Digital Responsivo PWA</p>
+      </footer>
 
-    <!-- Botão Flutuante do Carrinho -->
-    ${renderFloatingCartButton(state.cart, state.store.isOpen)}
+      ${renderFloatingCartButton(state.cart, state.store.isOpen)}
+    `;
+  } else {
+    // MODO PAINEL DO DONO (ADMIN)
+    if (!state.isAdminAuthenticated) {
+      // Se não autenticado, mostra tela limpa de Login do Admin
+      mainContent = `
+        <main class="max-w-md mx-auto px-4 py-12">
+          <div class="bg-white rounded-2xl p-6 sm:p-8 shadow-xl border border-[#ede5da] text-center space-y-4">
+            <div class="w-16 h-16 rounded-full bg-[#fbe5e8] text-[#7a192e] flex items-center justify-center mx-auto shadow-inner">
+              <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+            </div>
+
+            <div>
+              <h2 class="text-2xl font-serif font-bold text-[#2c1a16]">Acesso do Administrador</h2>
+              <p class="text-xs text-[#6e5e5a] mt-1">Digite a senha de acesso para gerenciar o cardápio, produtos, fotos, preços e pedidos (Senha padrão: <span class="font-mono font-bold text-[#7a192e] bg-[#fbe5e8] px-1.5 py-0.5 rounded">1234</span>).</p>
+            </div>
+
+            <form id="admin-auth-form" class="space-y-4 pt-2">
+              <div>
+                <input 
+                  type="password" 
+                  id="admin-pin-input" 
+                  maxlength="10" 
+                  required 
+                  placeholder="Senha / PIN de Acesso" 
+                  class="w-full text-center tracking-widest text-lg font-bold p-3 bg-[#faf7f2] border border-[#ede5da] focus:border-[#7a192e] rounded-xl outline-none"
+                />
+              </div>
+
+              ${state.adminAuthError ? `
+                <div class="text-xs font-semibold text-red-600 bg-red-50 p-2.5 rounded-xl border border-red-200">
+                  ${state.adminAuthError}
+                </div>
+              ` : ''}
+
+              <div class="flex items-center gap-2 pt-1">
+                <button 
+                  type="button" 
+                  id="nav-mode-client" 
+                  class="w-1/2 py-3 text-xs font-semibold text-[#6e5e5a] hover:bg-gray-100 rounded-full transition-colors border border-[#ede5da]"
+                >
+                  Voltar ao Cardápio
+                </button>
+
+                <button 
+                  type="submit" 
+                  class="btn-bordo w-1/2 py-3 text-xs"
+                >
+                  Entrar no Admin
+                </button>
+              </div>
+            </form>
+          </div>
+        </main>
+      `;
+    } else {
+      // Se autenticado, mostra o Painel Admin Completo
+      mainContent = renderAdminPanel(
+        state.adminActiveTab, 
+        state.store, 
+        state.products, 
+        state.categories, 
+        state.orders, 
+        state.adminOrdersFilter, 
+        true
+      );
+    }
+  }
+
+  // HTML Final
+  appContainer.innerHTML = `
+    ${renderHeader(state.store, state.currentView)}
+    ${mainContent}
 
     <!-- Container Dinâmico de Modais -->
     <div id="modal-container">
@@ -151,19 +219,16 @@ function renderApp() {
       ${state.activeModal === 'cart-drawer' ? renderCartDrawer(state.cart, state.store) : ''}
       ${state.activeModal === 'checkout-modal' ? renderCheckoutModal(state.cart, state.store) : ''}
       ${state.activeModal === 'admin-auth' ? renderAdminAuthModal(state.adminAuthError) : ''}
-      ${state.activeModal === 'admin-panel' ? renderAdminPanel(state.adminActiveTab, state.store, state.products, state.categories, state.orders, state.adminOrdersFilter) : ''}
       ${state.activeModal === 'product-form' ? renderProductFormModal(state.editingProduct, state.categories) : ''}
     </div>
   `;
 
-  appContainer.innerHTML = html;
   attachDynamicEventListeners();
 }
 
 // Configuração de Event Listeners Globais
 function setupGlobalEventListeners() {
   document.addEventListener('input', (e) => {
-    // Busca em tempo real
     if (e.target.id === 'search-input') {
       state.searchQuery = e.target.value;
       renderApp();
@@ -171,13 +236,24 @@ function setupGlobalEventListeners() {
   });
 
   document.addEventListener('click', (e) => {
-    // 0. Instalação PWA no Celular
+    // 0. Alternância de Modo (Cliente vs Admin)
+    if (e.target.closest('#nav-mode-client')) {
+      state.currentView = 'client';
+      renderApp();
+    }
+
+    if (e.target.closest('#nav-mode-admin')) {
+      state.currentView = 'admin';
+      renderApp();
+    }
+
+    // 0.1 Instalação PWA no Celular
     if (e.target.closest('#btn-install-pwa')) {
       if (deferredPrompt) {
         deferredPrompt.prompt();
         deferredPrompt.userChoice.then((choiceResult) => {
           if (choiceResult.outcome === 'accepted') {
-            console.log('Aplicativo instalado no celular pelo usuário!');
+            console.log('Aplicativo instalado no celular!');
           }
           deferredPrompt = null;
         });
@@ -320,27 +396,11 @@ function setupGlobalEventListeners() {
       }
     }
 
-    // 10. Abertura do Admin
-    if (e.target.closest('#btn-open-admin') || e.target.closest('#btn-footer-admin')) {
-      if (state.isAdminAuthenticated) {
-        state.activeModal = 'admin-panel';
-      } else {
-        state.adminAuthError = '';
-        state.activeModal = 'admin-auth';
-      }
-      renderApp();
-    }
+    // 10. Autenticação do Admin
     if (e.target.closest('#btn-cancel-admin-auth') || e.target.id === 'modal-admin-auth-overlay') {
-      if (state.activeModal === 'admin-auth') {
-        state.activeModal = null;
-        renderApp();
-      }
-    }
-    if (e.target.closest('#btn-close-admin-panel') || e.target.id === 'modal-admin-panel-overlay') {
-      if (state.activeModal === 'admin-panel') {
-        state.activeModal = null;
-        renderApp();
-      }
+      state.activeModal = null;
+      state.currentView = 'client';
+      renderApp();
     }
 
     // 11. Abas do Admin
@@ -358,7 +418,7 @@ function setupGlobalEventListeners() {
     }
     if (e.target.closest('#btn-close-product-form') || e.target.closest('#btn-cancel-prod-form') || e.target.id === 'modal-product-form-overlay') {
       if (state.activeModal === 'product-form') {
-        state.activeModal = 'admin-panel';
+        state.activeModal = null;
         renderApp();
       }
     }
@@ -442,9 +502,9 @@ function setupGlobalEventListeners() {
       if (enteredPin === state.store.adminPin) {
         state.isAdminAuthenticated = true;
         state.adminAuthError = '';
-        state.activeModal = 'admin-panel';
+        state.currentView = 'admin';
       } else {
-        state.adminAuthError = 'Senha incorreta! Tente novamente.';
+        state.adminAuthError = 'Senha incorreta! Tente novamente (Senha padrão: 1234).';
       }
       renderApp();
     }
@@ -482,7 +542,7 @@ function setupGlobalEventListeners() {
         }
 
         Storage.saveProducts(state.products);
-        state.activeModal = 'admin-panel';
+        state.activeModal = null;
         renderApp();
       };
 
@@ -559,13 +619,11 @@ function setupGlobalEventListeners() {
         status: 'pendente'
       };
 
-      // Limpar carrinho e salvar histórico de pedidos
       state.orders = Storage.addOrder(newOrder);
       state.cart = [];
       Storage.clearCart();
       state.activeModal = null;
 
-      // Gerar e Abrir Link do WhatsApp
       const waMessage = generateWhatsAppMessage(newOrder, state.store);
       const waUrl = buildWhatsAppUrl(state.store.whatsapp, waMessage);
 
@@ -574,7 +632,6 @@ function setupGlobalEventListeners() {
     }
   });
 
-  // Listener para upload de arquivo JSON de backup
   document.addEventListener('change', (e) => {
     if (e.target.id === 'input-import-json') {
       const file = e.target.files[0];
@@ -595,13 +652,11 @@ function setupGlobalEventListeners() {
       }
     }
 
-    // Alteração de filtro de status de pedidos no admin
     if (e.target.id === 'admin-orders-filter') {
       state.adminOrdersFilter = e.target.value;
       renderApp();
     }
 
-    // Alteração de status individual de pedido no admin
     if (e.target.classList.contains('admin-change-order-status')) {
       const orderId = e.target.dataset.orderId;
       const newStatus = e.target.value;
@@ -615,7 +670,6 @@ function setupGlobalEventListeners() {
   });
 }
 
-// Utilitários dinâmicos de renderização
 function updateProductModalSubtotal() {
   const qtyEl = document.getElementById('product-modal-qty');
   const subtotalEl = document.getElementById('product-modal-subtotal');
@@ -626,7 +680,6 @@ function updateProductModalSubtotal() {
 }
 
 function attachDynamicEventListeners() {
-  // Ajustes dinâmicos do formulário de checkout
   const fulfillmentInputs = document.querySelectorAll('input[name="fulfillmentMethod"]');
   fulfillmentInputs.forEach(input => {
     input.addEventListener('change', (e) => {
@@ -666,5 +719,4 @@ function attachDynamicEventListeners() {
   });
 }
 
-// Iniciar a aplicação quando o DOM estiver pronto
 document.addEventListener('DOMContentLoaded', initApp);

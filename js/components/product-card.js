@@ -1,6 +1,6 @@
 import { formatCurrency } from '../formatters.js';
 
-export function renderProductCard(product, cartItems = []) {
+export function renderProductCard(product, cartItems = [], isAdmin = false) {
   // Verificar se o item já está no carrinho
   const inCartItem = cartItems.find(item => item.id === product.id);
   const cartQty = inCartItem ? inCartItem.quantity : 0;
@@ -34,19 +34,30 @@ export function renderProductCard(product, cartItems = []) {
             ` : ''}
           </div>
 
+          <!-- Botão Rápido de Edição para Administrador -->
+          ${isAdmin ? `
+            <button 
+              data-admin-product-action="edit" 
+              data-product-id="${product.id}"
+              class="absolute top-3 right-3 bg-amber-400 hover:bg-amber-500 text-black px-3 py-1 rounded-full text-xs font-bold shadow-md flex items-center gap-1 transition-all hover:scale-105"
+            >
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+              <span>Editar</span>
+            </button>
+          ` : `
+            ${cartQty > 0 ? `
+              <div class="absolute top-3 right-3 w-7 h-7 rounded-full bg-[#7a192e] text-white flex items-center justify-center text-xs font-bold shadow-md ring-2 ring-white">
+                ${cartQty}
+              </div>
+            ` : ''}
+          `}
+
           <!-- Badge de Indisponível se Esgotado -->
           ${!isAvailable ? `
             <div class="absolute inset-0 bg-black/50 backdrop-blur-2xs flex items-center justify-center">
               <span class="px-3 py-1 rounded-md text-xs font-bold bg-red-600 text-white shadow-md uppercase tracking-wider">
                 Esgotado
               </span>
-            </div>
-          ` : ''}
-
-          <!-- Indicador de Quantidade no Carrinho -->
-          ${cartQty > 0 ? `
-            <div class="absolute top-3 right-3 w-7 h-7 rounded-full bg-[#7a192e] text-white flex items-center justify-center text-xs font-bold shadow-md ring-2 ring-white">
-              ${cartQty}
             </div>
           ` : ''}
         </div>
