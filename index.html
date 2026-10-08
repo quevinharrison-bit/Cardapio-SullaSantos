@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  
+  <!-- SEO & Social Meta -->
+  <title>Ateliê Fleur de Sucre | Cardápio Digital Interativo</title>
+  <meta name="description" content="Bolos festivos artesanais, fatias gourmet, brigadeiros e empadões. Faça seu pedido online via WhatsApp!" />
+  <meta name="theme-color" content="#7a192e" />
+
+  <!-- PWA Manifest & Apple Touch -->
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="apple-touch-icon" href="https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=192&q=80" />
+
+  <!-- Tailwind CSS v3/v4 Browser Engine -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            bordo: {
+              50: '#fdf2f4',
+              100: '#fbe5e8',
+              200: '#f7cbd2',
+              300: '#ef9fad',
+              400: '#e3687e',
+              500: '#d13a56',
+              600: '#b82643',
+              700: '#931b34',
+              800: '#7a192e',
+              900: '#571221',
+              950: '#3b0914',
+            }
+          },
+          fontFamily: {
+            serif: ['Playfair Display', 'Georgia', 'serif'],
+            sans: ['Plus Jakarta Sans', 'system-ui', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Styles Customizados Bordô -->
+  <link rel="stylesheet" href="./css/styles.css" />
+</head>
+<body class="bg-[#faf7f2] text-[#2c1a16] antialiased selection:bg-[#7a192e] selection:text-white">
+  
+  <!-- Container Principal da SPA -->
+  <div id="app"></div>
+
+  <!-- Script Principal ES Module -->
+  <script type="module" src="./js/app.js"></script>
+</body>
+</html>
